@@ -3,6 +3,9 @@
  * 把 index.html 複製成 404.html —— 直接開 /projects/xxx 時 GitHub 會回 404.html，
  * 那份就是 SPA 外殼，React Router 讀網址後渲染正確頁面，網址列不會變。
  * .nojekyll 讓 GitHub 不要用 Jekyll 處理（底線開頭的檔案才不會被吃掉）。
+ *
+ * ⚠️ 這支必須在 scripts/prerender.mjs 之前跑：prerender 會把首頁內容寫進 dist/index.html，
+ * 順序反了 404.html 就會變成首頁。
  */
 import { copyFileSync, writeFileSync } from 'node:fs'
 import { resolve, dirname } from 'node:path'

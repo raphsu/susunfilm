@@ -46,15 +46,37 @@ GitHub repo → **Settings → Pages → Build and deployment → Source** 選 *
 Node 22、`npm ci`、`npm run build`，然後上傳到 Pages。
 build 時帶入 `VITE_SITE_URL` 與 `VITE_BASE`。
 
-**SPA 路由**
-GitHub Pages 沒有伺服器端路由，直接開 `/projects/lele-siong` 會 404。
-`scripts/postbuild.mjs` 把 `index.html` 複製成 `404.html`——GitHub 回這份，
-React Router 讀網址渲染正確頁面，網址列不會變。同時產生 `.nojekyll`。
+**路由：build 時預先渲染（2026-08-19 改）**
+GitHub Pages 沒有伺服器端路由。原本只靠 `404.html` fallback，
+人看到的是正確頁面，但 HTTP 狀態碼是 404——爬蟲會當成頁面不存在。
+
+現在每條路由在 build 時各產出一份真的 HTML：
+
+```
+node scripts/sitemap.mjs      產生 sitemap.xml / robots.txt（只收 verified）
+tsc -b && vite build          瀏覽器端
+node scripts/postbuild.mjs    404.html（此時還是空殼）+ .nojekyll
+vite build --ssr …            SSR bundle → .ssr/（中間產物，不部署也不進版控）
+node scripts/prerender.mjs    12 份 HTML + 覆寫 404.html
+```
+
+- 路由清單 `scripts/routes.mjs` 由 sitemap 與 prerender 共用，不會兩邊對不上。
+- 產出的是 `dist/projects/lele-siong.html`。**GitHub Pages 會用 200 直接服務無副檔名網址**，
+  所以網址、canonical、sitemap 都不用改，也不用結尾斜線。
+- `404.html` 現在是預先渲染的 NotFound 頁（自帶 `robots: noindex`），真正不存在的網址才會走到。
+- **順序不能換**：postbuild 一定要在 prerender 之前，否則 404.html 會變成首頁內容。
+- 瀏覽器端 `src/main.tsx` 偵測到 `#root` 已有標記就 `hydrateRoot`，不是整片重畫。
+- 沒有 JS 的環境（爬蟲、部分 in-app browser）現在直接看得到內容。
+
+**本機怎麼測狀態碼**
+`vite preview` 是 SPA fallback，任何路徑都回 index.html，這件事在它上面永遠測不出來。
+用 `npm run serve`（`scripts/serve-dist.mjs`，port 4180）——它照 GitHub Pages 的規則服務 `dist/`：
+先找同名檔案、再試 `<path>.html`、再試目錄 index（301）、都沒有才 404。
 
 **子路徑**
 `vite.config.ts` 的 `base` 預設 `/susunfilm/`，React Router 用 `import.meta.env.BASE_URL` 當 basename，
 `src/lib/asset.ts` 和 `<Img>` 會自動補上 base。
-本機實測 `http://localhost:5274/susunfilm/projects/lele-siong`：路由、13 張圖、canonical 全對，零破圖。
+本機實測 `http://localhost:4180/susunfilm/projects/lele-siong`：路由、13 張圖、canonical 全對，零破圖。
 
 **CI 不需要 Python**
 `public/images/`（圖片管線的產出）已經 commit 進版控，所以 GitHub Actions 只跑 npm。

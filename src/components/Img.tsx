@@ -8,6 +8,13 @@ const withBase = (p: string) =>
   p.startsWith('/') ? import.meta.env.BASE_URL.replace(/\/$/, '') + p : p
 
 /**
+ * srcset 用空白與逗號分隔候選項，檔名裡的空白會讓整條候選被丟掉
+ * （Chrome：Dropped srcset candidate…）。三個 LINE 相簿匯出的檔名有空白，
+ * 中獎的圖只會退回 src、拿不到對的尺寸。src 屬性瀏覽器會自己編碼，srcset 不會。
+ */
+const enc = (p: string) => p.replace(/ /g, '%20')
+
+/**
  * 響應式圖片。
  * content 檔案裡寫的還是原始路徑（例如 /images/foo.jpg），
  * 這裡查 image-manifest.json 換成 WebP + JPEG 的多尺寸 srcset。
@@ -40,7 +47,7 @@ export function Img({
   if (!e) return <img src={withBase(src)} {...common} />
 
   const base = withBase(src).replace(/\.(jpe?g|png)$/i, '')
-  const set = (ext: string) => e.widths.map(w => `${base}-${w}.${ext} ${w}w`).join(', ')
+  const set = (ext: string) => e.widths.map(w => `${enc(base)}-${w}.${ext} ${w}w`).join(', ')
   const fallbackW = e.widths[e.widths.length - 1]
 
   return (

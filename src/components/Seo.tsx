@@ -1,4 +1,3 @@
-import { useEffect } from 'react'
 import { SITE_URL, site } from '../content/site'
 
 const OG_DEFAULT = '/brand/og-default.jpg'
@@ -6,7 +5,10 @@ const OG_DEFAULT = '/brand/og-default.jpg'
 /**
  * React 19 會自動把 <title> / <meta> / <link> 提升到 <head>，
  * 所以不需要 react-helmet 之類的東西。
- * 但它不會提升 inline <script>，JSON-LD 用 effect 自己塞進 head。
+ *
+ * JSON-LD 是例外：React 不提升 inline <script>，它會留在原地（body）。
+ * 這樣是刻意的——留在樹裡才會一起被 build 時的預先渲染輸出成靜態 HTML，
+ * 爬蟲不執行 JS 也讀得到。Google 接受 body 裡的 JSON-LD。
  */
 export function Seo({
   title,
@@ -29,15 +31,6 @@ export function Seo({
   // 只有那張真的是 1200×630 的預設圖才敢宣告尺寸
   const isDefaultOg = image === OG_DEFAULT
 
-  useEffect(() => {
-    if (!jsonLd) return
-    const el = document.createElement('script')
-    el.type = 'application/ld+json'
-    el.textContent = JSON.stringify(jsonLd)
-    document.head.appendChild(el)
-    return () => { el.remove() }
-  }, [jsonLd])
-
   return (
     <>
       <title>{full}</title>
@@ -59,6 +52,13 @@ export function Seo({
       <meta name="twitter:title" content={full} />
       <meta name="twitter:description" content={description} />
       <meta name="twitter:image" content={img} />
+
+      {jsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      )}
     </>
   )
 }

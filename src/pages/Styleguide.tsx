@@ -44,6 +44,11 @@ function Section({ n, title, en, children }: { n: string; title: string; en: str
 export default function Styleguide() {
   return (
     <div className="min-h-screen bg-paper text-ink">
+      {/* 這頁是給自己看的，不進 sitemap，也不要被索引。
+          有自己的 <title> 才不會沿用預先渲染 404 外殼留下的標題。 */}
+      <title>設計系統｜蘇珊日常 SUSUNFILM</title>
+      <meta name="robots" content="noindex" />
+
       {/* ── Nav 樣式示範 ───────────────────────────── */}
       <header className="sticky top-0 z-40 bg-paper/90 backdrop-blur-sm border-b border-rule">
         <div className="mx-auto flex max-w-page items-center justify-between px-6 py-4 md:px-10">
