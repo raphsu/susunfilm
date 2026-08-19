@@ -5,8 +5,8 @@
  */
 export const instagramPosts = [
   { img: '/images/546056794_122230203650254592_5362882001383672505_n.jpg', alt: '橋頭捷運高架橋下的反光鏡' },
-  { img: '/images/LINE_ALBUM_早期空拍作品_260819_1.jpg', alt: '嘉義：空拍雨豆樹與五分車' },
-  { img: '/images/467885426_122178920618254592_6595225569394719289_n.jpg', alt: '嘉義：山區窄軌鐵道月台' },
+  { img: '/images/LINE_ALBUM_早期空拍作品_260819_1.jpg', alt: '橋頭糖廠：空拍雨豆樹與五分車' },
+  { img: '/images/467885426_122178920618254592_6595225569394719289_n.jpg', alt: '山區窄軌鐵道月台' },
   { img: '/images/LINE_ALBUM_20201214 旗津_260819_2.jpg', alt: '旗津漂流木裝置' },
   { img: '/images/from-raphsu-studio/qiaotou-sugar-refinery-exhibition-interior.jpg', alt: '糖廠藝術村展場' },
   { img: '/images/LINE_ALBUM_2021.9.26_260819_3.jpg', alt: '草地上的 Super 8' },
