@@ -40,7 +40,6 @@ export const collaborations: PartnerGroup[] = [
       { name: '衛武營國家藝術文化中心', role: '場館友善計劃 手語情境影片', project: 'cross-field' },
       { name: '美濃區公所', role: '一日美濃慢旅行、美濃色彩、花海成果紀錄、農林漁牧業普查宣導', project: 'cross-field' },
       { name: '雙流國家森林遊樂區', role: '森林小泰山', project: 'cross-field' },
-      { name: '國立成功大學', role: '禮賢樓修復慶成典禮', project: 'cross-field' },
       { name: '清景麟教育基金會', role: '出發~種樹去', project: 'cross-field' },
     ],
   },
