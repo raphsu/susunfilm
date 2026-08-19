@@ -40,7 +40,7 @@ export default function Journal() {
               <div className="mb-5 aspect-[3/2] overflow-hidden bg-paper-warm">
                 <Img src={j.coverImage} alt="" className="slow-zoom h-full w-full object-cover" sizes="(min-width: 768px) 33vw, 100vw" />
               </div>
-              <div className="meta mb-2">{j.date} · {j.category}</div>
+              <div className="meta mb-2">{j.date ? `${j.date} · ` : ''}{j.category}</div>
               <h2 className="mb-2 text-[1.15rem] font-medium leading-snug">{j.title}</h2>
               <p className="text-[14px] leading-relaxed text-ink-soft">{j.excerpt}</p>
             </Link>

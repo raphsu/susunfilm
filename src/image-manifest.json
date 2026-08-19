@@ -121,6 +121,15 @@
   "width": 2048,
   "height": 1365
  },
+ "/images/fb/yanshui-outdoor-cinema/yanshui-outdoor-cinema-01-screen-and-audience-back.jpg": {
+  "widths": [
+   640,
+   1280,
+   1920
+  ],
+  "width": 2048,
+  "height": 1365
+ },
  "/images/fb/yanshui-outdoor-cinema/yanshui-outdoor-cinema-02-temple-facade-screening.jpg": {
   "widths": [
    640,
@@ -129,7 +138,34 @@
   "width": 1365,
   "height": 2048
  },
+ "/images/fb/yanshui-outdoor-cinema/yanshui-outdoor-cinema-03-temple-interior-lanterns.jpg": {
+  "widths": [
+   640,
+   1280,
+   1920
+  ],
+  "width": 2048,
+  "height": 1365
+ },
+ "/images/fb/yanshui-outdoor-cinema/yanshui-outdoor-cinema-04-temple-night-deckchairs.jpg": {
+  "widths": [
+   640,
+   1280,
+   1920
+  ],
+  "width": 2048,
+  "height": 1365
+ },
  "/images/fb/yanshui-outdoor-cinema/yanshui-outdoor-cinema-05-courtyard-audience.jpg": {
+  "widths": [
+   640,
+   1280,
+   1920
+  ],
+  "width": 2048,
+  "height": 1365
+ },
+ "/images/fb/yanshui-outdoor-cinema/yanshui-outdoor-cinema-06-elder-walking-past-screen.jpg": {
   "widths": [
    640,
    1280,
@@ -155,6 +191,15 @@
   "width": 1365,
   "height": 2048
  },
+ "/images/fb/yanshui-outdoor-cinema/yanshui-outdoor-cinema-09-audience-deckchairs-a.jpg": {
+  "widths": [
+   640,
+   1280,
+   1920
+  ],
+  "width": 2048,
+  "height": 1365
+ },
  "/images/fb/yanshui-outdoor-cinema/yanshui-outdoor-cinema-10-audience-deckchairs-b.jpg": {
   "widths": [
    640,
@@ -165,6 +210,24 @@
   "height": 1365
  },
  "/images/fb/yanshui-outdoor-cinema/yanshui-outdoor-cinema-11-temple-wide-night.jpg": {
+  "widths": [
+   640,
+   1280,
+   1920
+  ],
+  "width": 2048,
+  "height": 1365
+ },
+ "/images/fb/yanshui-outdoor-cinema/yanshui-outdoor-cinema-12-audience-spotlight.jpg": {
+  "widths": [
+   640,
+   1280,
+   1920
+  ],
+  "width": 2048,
+  "height": 1365
+ },
+ "/images/fb/yanshui-outdoor-cinema/yanshui-outdoor-cinema-14-screen-wide-balloons.jpg": {
   "widths": [
    640,
    1280,

@@ -137,7 +137,7 @@ export default function Home() {
                   <Img src={j.coverImage} alt="" className="slow-zoom h-full w-full object-cover" sizes="(min-width: 768px) 180px, 100vw" />
                 </div>
                 <div>
-                  <div className="meta mb-2">{j.date} · {j.category}</div>
+                  <div className="meta mb-2">{j.date ? `${j.date} · ` : ''}{j.category}</div>
                   <h3 className="mb-1 text-[1.1rem] font-medium">{j.title}</h3>
                   <p className="text-[14px] text-ink-soft">{j.excerpt}</p>
                 </div>

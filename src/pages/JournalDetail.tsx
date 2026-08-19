@@ -39,7 +39,7 @@ export default function JournalDetail() {
 
       <Wrap>
         <div className="mx-auto max-w-read">
-          <div className="meta mb-4">{j.date} · {j.category}</div>
+          <div className="meta mb-4">{j.date ? `${j.date} · ` : ''}{j.category}</div>
           <h1 className="text-[clamp(1.8rem,4vw,2.75rem)] font-bold leading-[1.3]">{j.title}</h1>
           <p className="mt-8 text-[1.1rem]">{j.excerpt}</p>
 
