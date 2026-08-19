@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- title 與 description 由 src/components/Seo.tsx 每頁各自輸出。
+         這裡不要再放一份，否則每頁都會有兩個 <title>／<meta name="description">，
+         而 querySelector 抓到的是靜態那份 → 全站描述變成一模一樣。 -->
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" type="image/png" href="/brand/logo-192.png" sizes="192x192" />
+    <link rel="apple-touch-icon" href="/brand/logo-192.png" />
+    <meta name="theme-color" content="#668271" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;500;700;900&family=Noto+Serif+TC:wght@300&family=Roboto+Mono:wght@400&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

@@ -1,0 +1,137 @@
+@import "tailwindcss";
+
+/* ──────────────────────────────────────────────────────────────
+   蘇珊日常 SUSUNFILM · Design Tokens
+   色票全部有出處：LOGO 原始檔實測 + 作品照片量化取樣。
+   詳見 docs/BRAND-ASSETS.md 與 docs/IMAGE-INVENTORY.md
+   ────────────────────────────────────────────────────────────── */
+@theme {
+  /* 紙 —— 暖，不是純白。因為 LOGO 的米是 #FBE5C6，冷白會讓它顯髒 */
+  --color-paper:      #F7F5F1;
+  --color-paper-warm: #EDE9E2;
+  --color-paper-deep: #E3DED4;
+
+  /* 墨 */
+  --color-ink:       #1A1A1A;
+  --color-ink-soft:  #4A4A4A;
+  --color-ink-mute:  #635C52;   /* WCAG：11px 的資訊層也要過 AA，對 paper 6.06:1 */
+  --color-rule:      #D8D3CA;
+
+  /* 品牌 —— LOGO 原始檔實測 */
+  --color-moss:      #668271;   /* LOGO 實測。用於底色、框線、非文字 */
+  --color-moss-text: #546C5D;   /* 同色相壓深，給「綠色文字」用，對 paper 5.24:1 */
+  --color-moss-dark: #4A6053;   /* 頁尾／CTA 的深綠底，讓 cream 過 AA（5.54:1）*/
+  --color-moss-deep: #51683E;
+  --color-cream:     #FBE5C6;
+
+  /* 極少量。反光鏡框與三角錐的顏色 */
+  --color-rust:      #6E3521;
+
+  /* 字 —— 與 lelesiong 官方站同一組，維持品牌連續性 */
+  --font-sans:  "Noto Sans TC", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Noto Serif TC", "Songti TC", serif;
+  --font-mono:  "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* 版面 */
+  --container-page: 1280px;
+  --container-read: 680px;
+
+  /* 動態 —— 只有三種，全部慢 */
+  --ease-out-soft: cubic-bezier(.22,.61,.36,1);
+}
+
+@layer base {
+  :root { color-scheme: light; }
+
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    background: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-weight: 300;
+    font-size: 17px;
+    line-height: 1.9;          /* 中文要更鬆 */
+    letter-spacing: .02em;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection { background: var(--color-moss); color: var(--color-cream); }
+
+  a { color: inherit; text-decoration: none; }
+
+  /* 焦點可見 —— 無障礙基本要求 */
+  :focus-visible {
+    outline: 2px solid var(--color-moss);
+    outline-offset: 3px;
+  }
+
+  img { max-width: 100%; display: block; }
+}
+
+@layer components {
+  /* 進場：只有一種，16px / 600ms / 一次。
+     漸進增強：預設可見。只有在 JS 確認 IntersectionObserver 可用、
+     並在 <html> 掛上 .reveal-ready 之後，才把未進場的元素藏起來。
+     沒有 JS、IO 壞掉、或爬蟲來看，內容都照樣看得到。 */
+  .reveal { transition: opacity .6s var(--ease-out-soft), transform .6s var(--ease-out-soft); }
+  .reveal-ready .reveal:not(.is-in) { opacity: 0; transform: translateY(16px); }
+
+  /* 圖片極慢的放大。4 秒，讓閱讀變慢 */
+  .slow-zoom { transition: transform 4s var(--ease-out-soft); }
+  .group:hover .slow-zoom { transform: scale(1.03); }
+
+  /* 資訊層：年份、地點、分類、Credits */
+  .meta {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--color-ink-mute);
+  }
+
+  /* 台羅拼音。這個品牌已經在用的語言層 */
+  .tailo {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: .1em;
+    color: var(--color-moss-text);
+  }
+
+  /* 引言 —— 襯線只出現在這裡與 STORY 長文開頭 */
+  .pullquote {
+    font-family: var(--font-serif);
+    font-weight: 300;
+    line-height: 1.85;
+    border-left: 1px solid var(--color-moss);
+    padding-left: 1.5rem;
+  }
+
+  .rule { border-top: 1px solid var(--color-rule); }
+
+  /* 連結底線只在 hover 出現，收斂 */
+  .link-quiet {
+    background-image: linear-gradient(var(--color-moss), var(--color-moss));
+    background-size: 0% 1px;
+    background-position: 0 100%;
+    background-repeat: no-repeat;
+    transition: background-size .4s var(--ease-out-soft);
+  }
+  .link-quiet:hover { background-size: 100% 1px; }
+
+  /* WCAG 2.2 · 2.5.8 目標大小最小 24×24。
+     .meta 是 11px 的小字，行高算下來只有 21px，補上下內距撐到 24。 */
+  .link-quiet.meta,
+  a.meta {
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; transform: none; transition: none; }
+  .slow-zoom, .group:hover .slow-zoom { transition: none; transform: none; }
+  .link-quiet { transition: none; }
+}
