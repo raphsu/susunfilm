@@ -18,8 +18,12 @@ export type JournalEntry = {
  * Notion 的三份素材都不能用：Threads 排程是 AI 草稿、自我問與答無具名受訪者、
  * 黃爸爸口述含隱私風險。詳見 docs/AUDIT.md 第 08 節。
  *
- * 標題與摘要都是我起的草稿。第一篇（廟埕）2026-08-20 經使用者指示放行上線，
- * 照片是使用者自己的，文字仍待使用者改寫。其餘三筆維持 draft。
+ * **標題與內文都是我起的草稿**，只描述照片裡看得到的東西，沒有虛構情節。
+ * 使用者 2026-08-20 指示放行三篇：廟埕、我們把自己放進風景裡、三角錐系列。
+ * 照片與「三角錐系列」這個名字都是使用者自己的；文字仍待使用者改寫。
+ *
+ * 另外兩篇（have-nice-day-wall / osaka-mirror）只有標題與摘要、沒有內文與照片，
+ * 維持 draft——放行了頁面只會顯示「內文整理中」。
  */
 export const journal: JournalEntry[] = [
   {
@@ -81,7 +85,7 @@ export const journal: JournalEntry[] = [
       { src: '/images/self/self-06-cat-arch.jpg', alt: '一座巨大的貓咪造型拱門，兩個人站在正中央舉起手' },
       { src: '/images/LINE_ALBUM_早期空拍作品_260819_1.jpg', alt: '空拍橋頭糖廠：兩個人站在五分車車頂張開手，身後是一整排雨豆樹，遠處有一根煙囪' },
     ],
-    status: 'draft',
+    status: 'verified',
   },
   {
     id: 'have-nice-day-wall',
@@ -127,6 +131,6 @@ export const journal: JournalEntry[] = [
       { src: '/images/LINE_ALBUM_20201214 旗津_260819_2.jpg', alt: '旗津的漂流木章魚裝置在暮色裡打光，兩個人頭戴三角錐站在兩隻腳旁邊' },
       { src: '/images/[蘇珊日常] 橋仔頭，好好生活.jpg', alt: '蘇珊日常的品牌主視覺：空拍雲霧中的茶園，兩個頭戴三角錐的人走在茶行之間' },
     ],
-    status: 'draft',
+    status: 'verified',
   },
 ]
