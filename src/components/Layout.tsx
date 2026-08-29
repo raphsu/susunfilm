@@ -1,7 +1,11 @@
 import { useState } from 'react'
 import { Link, NavLink, Outlet } from 'react-router-dom'
 import { site } from '../content/site'
+import { published } from '../lib/content'
 import { asset } from '../lib/asset'
+
+/** production 只留 verified 的頁面；dev 全部顯示。 */
+const nav = published([...site.nav])
 
 function Header() {
   const [open, setOpen] = useState(false)
@@ -14,7 +18,7 @@ function Header() {
         </Link>
 
         <nav className="hidden gap-7 md:flex">
-          {site.nav.map(i => (
+          {nav.map(i => (
             <NavLink
               key={i.to}
               to={i.to}
@@ -37,7 +41,7 @@ function Header() {
 
       {open && (
         <nav className="border-t border-rule px-6 pb-6 pt-2 md:hidden">
-          {site.nav.map(i => (
+          {nav.map(i => (
             <NavLink
               key={i.to}
               to={i.to}
@@ -62,7 +66,7 @@ function Footer() {
         <p className="max-w-read text-cream">{site.tagline}</p>
 
         <nav className="mt-10 grid gap-y-3 sm:grid-cols-2 md:grid-cols-4">
-          {site.nav.slice(1).map(i => (
+          {nav.slice(1).map(i => (
             <Link key={i.to} to={i.to} className="text-[14px] text-cream/90 transition-colors hover:text-cream">
               {i.zh}
             </Link>

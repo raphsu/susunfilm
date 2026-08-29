@@ -10,6 +10,12 @@ import { fileURLToPath } from 'node:url'
 
 export const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 
+/** 從只有一個 status 欄位的 content 檔抓那個 status（整頁一個閘門） */
+function pageStatus(file) {
+  const src = readFileSync(resolve(root, file), 'utf8')
+  return /status:\s*'([^']+)'/.exec(src)?.[1]
+}
+
 /** 從 content 檔抓 slug + status */
 function entries(file) {
   const src = readFileSync(resolve(root, file), 'utf8')
@@ -33,6 +39,10 @@ export function routes() {
     { p: '/journal', pri: '0.7', freq: 'weekly' },
     ...journal.map(e => ({ p: `/journal/${e.slug}`, pri: '0.6', freq: 'monthly' })),
     { p: '/collaboration', pri: '0.7', freq: 'monthly' },
+    // 品牌攝影合作：src/content/brand.ts 的 status 改成 verified 才會進 sitemap 與預先渲染
+    ...(pageStatus('src/content/brand.ts') === 'verified'
+      ? [{ p: '/brand', pri: '0.8', freq: 'monthly' }]
+      : []),
     { p: '/contact', pri: '0.6', freq: 'yearly' },
   ]
 }

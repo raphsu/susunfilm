@@ -9,6 +9,7 @@ import ProjectDetail from './pages/ProjectDetail'
 import Journal from './pages/Journal'
 import JournalDetail from './pages/JournalDetail'
 import Collaboration from './pages/Collaboration'
+import Brand from './pages/Brand'
 import Contact from './pages/Contact'
 import NotFound from './pages/NotFound'
 import Styleguide from './pages/Styleguide'
@@ -30,6 +31,7 @@ export function AppRoutes() {
         <Route path="journal" element={<Journal />} />
         <Route path="journal/:slug" element={<JournalDetail />} />
         <Route path="collaboration" element={<Collaboration />} />
+        <Route path="brand" element={<Brand />} />
         <Route path="contact" element={<Contact />} />
         <Route path="*" element={<NotFound />} />
       </Route>

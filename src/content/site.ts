@@ -36,14 +36,20 @@ export const site = {
     { text: '行慢淡薄仔，才看會著。', romanization: 'kiânn bān tām-po̍h-á, tsiah khuànn ē tio̍h', source: '咧咧相官方站', status: 'verified' as Status },
   ],
 
+  /**
+   * 導覽列也走資料閘門：status 不是 'verified' 的頁面不會出現在選單與頁尾。
+   * 這樣「頁面還沒放行」與「選單連過去是 404」不會再各記一半（見 src/lib/content.ts）。
+   */
   nav: [
-    { zh: '首頁', en: 'HOME', to: '/' },
-    { zh: '關於蘇珊', en: 'ABOUT', to: '/about' },
-    { zh: '品牌故事', en: 'STORY', to: '/story' },
-    { zh: '作品', en: 'PROJECTS', to: '/projects' },
-    { zh: '日常誌', en: 'JOURNAL', to: '/journal' },
-    { zh: '一起做過的事', en: 'COLLABORATION', to: '/collaboration' },
-    { zh: '聯絡', en: 'CONTACT', to: '/contact' },
+    { zh: '首頁', en: 'HOME', to: '/', status: 'verified' as Status },
+    { zh: '關於蘇珊', en: 'ABOUT', to: '/about', status: 'verified' as Status },
+    { zh: '品牌故事', en: 'STORY', to: '/story', status: 'verified' as Status },
+    { zh: '作品', en: 'PROJECTS', to: '/projects', status: 'verified' as Status },
+    { zh: '日常誌', en: 'JOURNAL', to: '/journal', status: 'verified' as Status },
+    { zh: '一起做過的事', en: 'COLLABORATION', to: '/collaboration', status: 'verified' as Status },
+    // 文案還是我起草的，跟 src/content/brand.ts 的 status 要一起改
+    { zh: '品牌攝影合作', en: 'BRAND', to: '/brand', status: 'draft' as Status },
+    { zh: '聯絡', en: 'CONTACT', to: '/contact', status: 'verified' as Status },
   ],
 
   social: {
