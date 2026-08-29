@@ -1,4 +1,7 @@
+import { Link } from 'react-router-dom'
 import { site } from '../content/site'
+import { brand } from '../content/brand'
+import { isPublished } from '../lib/content'
 import { Wrap } from '../components/PageHead'
 import { Seo } from '../components/Seo'
 
@@ -27,6 +30,15 @@ export default function Contact() {
       >
         開始聊聊
       </a>
+
+      {/* 品牌合作有自己一頁，先看過再寫信會省下一輪來回 */}
+      {isPublished(brand.status) && (
+        <p className="mt-8 max-w-read text-[14px] text-ink-soft">
+          如果是品牌的案子，
+          <Link to="/brand" className="link-quiet text-moss-text">品牌攝影合作</Link>
+          那頁寫了我們適合什麼、不適合什麼。
+        </p>
+      )}
 
       <div className="rule mt-16 pt-10">
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
