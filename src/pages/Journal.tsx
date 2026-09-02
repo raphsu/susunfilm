@@ -6,6 +6,8 @@ import { PageHead, Wrap } from '../components/PageHead'
 import { Seo } from '../components/Seo'
 import { Img } from '../components/Img'
 
+const JOURNAL_RATIOS = ['aspect-[3/2]', 'aspect-[4/5]', 'aspect-square']
+
 export default function Journal() {
   const items = published(journal)
   return (
@@ -34,10 +36,16 @@ export default function Journal() {
           </div>
         )}
 
+        {/* 跟首頁 Project Card 同一套交錯節奏（md:mt-16 / md:mt-6），
+            並讓封面比例輪替，避免三欄全部等高等比例。 */}
         <div className="grid gap-x-8 gap-y-14 md:grid-cols-3">
-          {items.map(j => (
-            <Link key={j.id} to={`/journal/${j.slug}`} className="group block">
-              <div className="mb-5 aspect-[3/2] overflow-hidden bg-paper-warm">
+          {items.map((j, i) => (
+            <Link
+              key={j.id}
+              to={`/journal/${j.slug}`}
+              className={`group block ${i % 3 === 1 ? 'md:mt-16' : i % 3 === 2 ? 'md:mt-6' : ''}`}
+            >
+              <div className={`mb-5 overflow-hidden bg-paper-warm ${JOURNAL_RATIOS[i % 3]}`}>
                 <Img src={j.coverImage} alt="" className="slow-zoom h-full w-full object-cover" sizes="(min-width: 768px) 33vw, 100vw" />
               </div>
               <div className="meta mb-2">{j.date ? `${j.date} · ` : ''}{j.category}</div>
