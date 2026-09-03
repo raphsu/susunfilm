@@ -47,14 +47,19 @@ export default function Home() {
         </div>
       </section>
 
+      {/* 版面系統的「非對稱：文字靠左 col 2–7 或靠右 col 7–12」，
+          原本只用在內頁區塊，Hero 標題反而是滿版置中——這裡補齊，
+          讓大標與副標形成一組三分法的重心。 */}
       <section className="px-6 py-14 md:px-10 md:py-20">
-        <div className="mx-auto max-w-page">
-          <h1 className="text-[clamp(2.5rem,6vw,4.5rem)] font-black leading-[1.12] tracking-[-.01em]">
+        <div className="mx-auto grid max-w-page gap-x-10 gap-y-8 md:grid-cols-12">
+          <h1 className="text-[clamp(2.5rem,6vw,4.5rem)] font-black leading-[1.12] tracking-[-.01em] md:col-span-7 md:col-start-2">
             蘇珊日常
           </h1>
-          <p className="mt-6 max-w-read text-[1.05rem] md:text-[1.15rem]">{site.tagline}</p>
-          <div className="mt-8 flex flex-wrap gap-x-6 gap-y-2">
-            {site.keywords.map(k => <span key={k} className="meta">{k}</span>)}
+          <div className="md:col-span-4 md:col-start-9 md:self-end">
+            <p className="text-[1.05rem] md:text-[1.15rem]">{site.tagline}</p>
+            <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2">
+              {site.keywords.map(k => <span key={k} className="meta">{k}</span>)}
+            </div>
           </div>
         </div>
       </section>
@@ -152,10 +157,24 @@ export default function Home() {
       <section className="border-t border-rule px-6 py-16 md:px-10 md:py-24">
         <div className="mx-auto max-w-page">
           <SectionHead zh="最近的日常" en="INSTAGRAM" />
+          {/* 六宮格原本完全等大，跟 Project Card「不等高、不等比例」的原則不一致。
+              第一張（反光鏡，品牌最常用的畫面）放大成雙欄，其餘維持方形，
+              建立輕重之分，不動到六張圖本身。 */}
           <div className="grid grid-cols-2 gap-2 md:grid-cols-6 md:gap-3">
-            {instagramPosts.map(p => (
-              <a key={p.img} href={site.social.instagram} target="_blank" rel="noreferrer" className="group aspect-square overflow-hidden bg-paper-warm">
-                <Img src={p.img} alt={p.alt} className="slow-zoom h-full w-full object-cover" sizes="(min-width: 768px) 16vw, 50vw" />
+            {instagramPosts.map((p, i) => (
+              <a
+                key={p.img}
+                href={site.social.instagram}
+                target="_blank"
+                rel="noreferrer"
+                className={`group overflow-hidden bg-paper-warm ${i === 0 ? 'col-span-2 aspect-[2/1] md:col-span-2' : 'aspect-square'}`}
+              >
+                <Img
+                  src={p.img}
+                  alt={p.alt}
+                  className="slow-zoom h-full w-full object-cover"
+                  sizes={i === 0 ? '(min-width: 768px) 32vw, 100vw' : '(min-width: 768px) 16vw, 50vw'}
+                />
               </a>
             ))}
           </div>
