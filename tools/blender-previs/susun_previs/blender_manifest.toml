@@ -1,0 +1,16 @@
+schema_version = "1.0.0"
+
+id = "susun_previs"
+version = "0.1.0"
+name = "Susun Previs"
+tagline = "One sentence to a low-poly previs, packaged for Seedance"
+maintainer = "susunfilm"
+type = "add-on"
+
+blender_version_min = "4.2.0"
+
+license = ["SPDX:GPL-3.0-or-later"]
+
+[permissions]
+network = "Calls the Claude API to design shots from a one-line brief"
+files = "Writes the reference video, frames and prompt to the export folder"
