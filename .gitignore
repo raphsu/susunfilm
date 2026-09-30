@@ -6,3 +6,5 @@ dist
 .vite
 tsconfig.tsbuildinfo
 .ssr
+__pycache__
+*.pyc
