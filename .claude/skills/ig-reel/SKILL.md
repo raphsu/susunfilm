@@ -22,6 +22,14 @@ python3 hookscore.py --hook "one line"      # score a single one
 python3 beats.py script.txt --target 30     # timed beat sheet before you shoot
 ```
 
+**Traditional Chinese works too** (and 中英夾雜). Both tools load `cjk.py`:
+Chinese is timed per character at ~270 字/min (`beats.py --cpm 300` for a
+faster speaker), a hook should be 8-20 字 (about 13 字 fits the 3-second
+window), and Chinese numerals (三百公尺, 十分鐘), money words (萬, 元, 預算), stakes
+words (差點, 沒人, 千萬別), weak openers (所以, 其實, 今天) and greetings / preambles
+(大家好, 這支影片) are all scored. Write Chinese hooks and scripts straight into
+the files; no translation step.
+
 ## Before you write
 
 1. Read `~/.claude/instagram/voice.md` if it exists. That is the user's voice

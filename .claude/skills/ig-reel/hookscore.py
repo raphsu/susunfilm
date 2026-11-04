@@ -28,6 +28,12 @@ Usage
   python3 hookscore.py --hook "I lost $18,000 on one missing contract."
   pbpaste | python3 hookscore.py -
   python3 hookscore.py hooks.txt --json
+  python3 hookscore.py --hook "戒指在狗嘴裡，儀式還有3分鐘。"
+
+Traditional Chinese (and 中英夾雜) is supported through cjk.py: characters are
+timed at ~4.5 per second, Chinese numerals, money words, stakes words, weak
+openers, greetings and imperatives are recognised, and lengths are reported in
+字. A 5-12 word hook is an 8-20 character hook.
 """
 
 import argparse
@@ -36,14 +42,19 @@ import re
 import statistics
 import sys
 
+import cjk
+
 WORD_RE = re.compile(r"[A-Za-z0-9$%'’-]+")
+# ASCII-only boundaries: Python's \b sees 還 and 3 as the same kind of
+# character, so "還有3分鐘" never matched a number with \b.
+_E = r"(?![A-Za-z])"
 NUMBER_RE = re.compile(
-    r"\$\s?\d[\d,]*(?:\.\d+)?"                       # money, whole
-    r"|\b\d[\d,]*(?:\.\d+)?\s?"                      # a figure, with or
-    r"(?:%|k\b|x\b|hrs?\b|hours?\b|mins?\b|minutes?\b"  # without a unit
-    r"|days?\b|weeks?\b|months?\b|years?\b)?",
+    r"(?:NT)?\$\s?\d[\d,]*(?:\.\d+)?"                 # money, whole
+    r"|(?<![A-Za-z0-9_])\d[\d,]*(?:\.\d+)?\s?"         # a figure, with or
+    rf"(?:%|k{_E}|x{_E}|hrs?{_E}|hours?{_E}|mins?{_E}|minutes?{_E}"  # without a unit
+    rf"|days?{_E}|weeks?{_E}|months?{_E}|years?{_E})?",
     re.IGNORECASE)
-PROPER_RE = re.compile(r"(?<!^)\b[A-Z][a-z]{2,}\b")
+PROPER_RE = re.compile(r"(?<!^)(?<![A-Za-z])[A-Z][a-z]{2,}(?![A-Za-z])")
 HASHTAG_RE = re.compile(r"(?:^|\s)#\w+")
 EMOJI_RE = re.compile(r"[\U0001F300-\U0001FAFF☀-➿]")
 
@@ -106,7 +117,7 @@ DEALBREAKERS = [
      "Hashtag in the hook. Hashtags belong at the bottom of the caption, if anywhere."),
     (EMOJI_RE,
      "Emoji in the hook. On-screen text at hook size has room for words or for an emoji, not both."),
-]
+] + cjk.ZH_DEALBREAKERS
 
 
 def clamp(n):
@@ -115,15 +126,16 @@ def clamp(n):
 
 def words(text):
     # "$18,000" is one word when it is spoken, so it is one word here too.
-    return WORD_RE.findall(re.sub(r"(?<=\d),(?=\d)", "", text))
+    return cjk.en_words(text)
 
 
 def check_length(text):
     """A hook has to land before the thumb moves. Roughly two seconds."""
     w = words(text)
-    n = len(w)
-    secs = n / 2.75                      # ~165 words per minute, spoken
-    chars = len(text.strip())
+    zh = cjk.cjk_count(text)
+    n = cjk.eq_words(text) if zh else len(w)   # Chinese -> word-equivalents
+    secs = cjk.seconds(text)             # ~165 wpm, ~270 Chinese chars/min
+    chars = cjk.display_width(text)      # a Chinese char is two columns wide
     if 5 <= n <= 12:
         score = 100.0
     elif n < 5:
@@ -132,6 +144,10 @@ def check_length(text):
         score = clamp(100 - (n - 12) * 11)
     if chars > 60:                       # two lines of big on-screen text
         score -= 12
+    if zh:
+        parts = [f"{zh} 字"] + ([f"{len(w)} words"] if w else [])
+        return clamp(score), (f"{' + '.join(parts)}, ~{secs:.1f}s spoken "
+                              f"(want 8-20 字, ~2-4s)")
     return clamp(score), f"{n} words, {chars} chars, ~{secs:.1f}s spoken (want 5-12 words)"
 
 
@@ -141,6 +157,7 @@ def check_specificity(text):
     propers = set(PROPER_RE.findall(text))
     low = [w.lower().strip("'’") for w in words(text)]
     spoken = [w for w in low if w in SPOKEN_NUMBERS or w in MONEY_WORDS]
+    spoken += [t for t, _ in cjk.zh_numbers(text) + cjk.zh_money(text)]
     hits = len(nums) + len(propers) + len(spoken)
     score = 15.0 if hits == 0 else clamp(45 + hits * 30)
     found = ", ".join(nums[:2] + sorted(propers)[:2] + spoken[:2])
@@ -152,7 +169,7 @@ def check_stakes(text):
     """Tension, cost, negation. Something the viewer might lose."""
     w = [x.lower().strip("'’") for x in words(text)]
     hits = [x for x in w if x in STAKES]
-    markers = sorted(set(hits))
+    markers = sorted(set(hits)) + sorted({t for t, _ in cjk.zh_stakes(text)})
     if re.search(r"\$\s?\d", text):
         markers.append("a price")
     n = len(markers)
@@ -165,34 +182,57 @@ def check_stakes(text):
 def check_frontload(text):
     """The interesting word cannot be in position nine."""
     w = words(text)
-    if not w:
+    zh = cjk.has_cjk(text)
+    if not w and not zh:
         return 0.0, "empty"
     low = [x.lower().strip("'’") for x in w]
-    opener = " ".join(low[:2])
     penalty = 0
     hit_opener = None
-    for weak in WEAK_OPENERS:
-        if opener.startswith(weak) or low[0] == weak:
+    if low:
+        opener = " ".join(low[:2])
+        for weak in WEAK_OPENERS:
+            if opener.startswith(weak) or low[0] == weak:
+                penalty, hit_opener = 30, weak
+                break
+    if zh and not hit_opener:
+        weak = cjk.starts_with_any(text, cjk.ZH_WEAK_OPENERS)
+        if weak:
             penalty, hit_opener = 30, weak
-            break
-    payload = None
+    # Where the payload sits, measured in spoken word-equivalents so a
+    # Chinese line and an English line are held to the same clock.
+    candidates = []
     for i, token in enumerate(low):
         if (token in STAKES or token in SPOKEN_NUMBERS or token in MONEY_WORDS
                 or NUMBER_RE.match(w[i]) or (i and PROPER_RE.match(w[i]))):
-            payload = i
+            m = re.search(re.escape(w[i]), text)
+            candidates.append(m.start() if m else 0)
             break
+    if zh:
+        off = cjk.payload_offset(text)
+        if off is not None:
+            candidates.append(off)
+        m = NUMBER_RE.search(text)
+        if m:
+            candidates.append(m.start())
+    if not candidates:
+        payload = None
+    else:
+        idx = min(candidates)
+        payload = cjk.eq_words_before(text, idx)
+        label = (f"第{cjk.cjk_count(text[:idx]) + len(words(text[:idx])) + 1}字" if zh
+                 else f"word {round(payload) + 1}")
     if payload is None:
         base = 30.0
         where = "no payload word anywhere in the line"
     elif payload <= 3:
         base = 100.0
-        where = f"payload at word {payload + 1}"
+        where = f"payload at {label}"
     elif payload <= 6:
         base = 70.0
-        where = f"payload at word {payload + 1}, could move forward"
+        where = f"payload at {label}, could move forward"
     else:
         base = 40.0
-        where = f"payload at word {payload + 1}, too late"
+        where = f"payload at {label}, too late"
     detail = where + (f"; weak opener \"{hit_opener}\"" if hit_opener else "")
     return clamp(base - penalty), detail
 
@@ -201,11 +241,14 @@ def check_address(text):
     """Aimed at one viewer, or floating in the air."""
     low = text.lower()
     w = [x.lower().strip("'’") for x in words(text)]
-    if re.search(r"\b(you|your|you're|youre|yourself)\b", low):
+    if re.search(r"\b(you|your|you're|youre|yourself)\b", low) or re.search(r"[你妳您]", text):
         return 100.0, "speaks to the viewer"
+    zh_imp = cjk.starts_with_any(text, cjk.ZH_IMPERATIVES) if cjk.has_cjk(text) else None
+    if zh_imp and not (w and cjk.starts_with_any(text, [words(text)[0]])):
+        return 90.0, f"imperative opener (\"{zh_imp}\")"
     if w and w[0] in IMPERATIVES:
         return 90.0, f"imperative opener (\"{w[0]}\")"
-    if re.search(r"\b(i|my|me|we|our)\b", low):
+    if re.search(r"\b(i|my|me|we|our)\b", low) or re.search(r"我", text):
         return 70.0, "first person, no viewer named"
     return 35.0, "third person, nobody in the room"
 
@@ -259,7 +302,8 @@ def render_table(rows, out=sys.stdout):
     print("\nHOOK RANKING\n" + "=" * 78, file=out)
     for i, r in enumerate(rows, 1):
         mark = "->" if i == 1 else "  "
-        hook = r["hook"] if len(r["hook"]) <= 62 else r["hook"][:59] + "..."
+        limit = 31 if cjk.has_cjk(r["hook"]) else 62     # Chinese is double width
+        hook = r["hook"] if len(r["hook"]) <= limit else r["hook"][:limit - 3] + "..."
         print(f"{mark} {r['score']:5.1f} {r['verdict']:<7} {hook}", file=out)
         print(f"        weakest: {r['weakest']} ({r['checks'][r['weakest']]['score']:.0f})", file=out)
         for f in r["flags"]:

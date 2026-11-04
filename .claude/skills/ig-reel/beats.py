@@ -19,6 +19,13 @@ Usage
   python3 beats.py script.txt --wpm 185 --target 45
   pbpaste | python3 beats.py -
   python3 beats.py script.txt --json
+  python3 beats.py script.txt --cpm 300 --target 30   # faster Chinese speaker
+
+Traditional Chinese (and 中英夾雜) is supported through cjk.py. Chinese is timed
+per character at --cpm (default 270 characters per minute, ~4.5 a second);
+English words in the same line are still timed at --wpm. Sentences split on
+。！？ as well as .!?, Chinese numerals and money words count as concrete, and
+the loop check looks for a shared Chinese phrase (2+ characters).
 """
 
 import argparse
@@ -26,9 +33,22 @@ import json
 import re
 import sys
 
+import cjk
+
 WORD_RE = re.compile(r"[A-Za-z0-9$%'’-]+")
-SENT_RE = re.compile(r"[^.!?]+[.!?]*")
+# Chinese strings clauses together with ，where English would end a sentence,
+# so a long Chinese line also breaks at ，and ；.
+SENT_RE = re.compile(r"[^.!?。！？，；]+[.!?。！？，；]*")
 CONCRETE_RE = re.compile(r"\$\s?\d|\b\d[\d,.]*\b|(?<!^)\b[A-Z][a-z]{2,}\b", re.MULTILINE)
+# \b sees 還 and 3 as the same kind of character, so lines with Chinese in
+# them use cjk.py's ASCII-only boundaries plus Chinese numerals and money words.
+PROPER_RE = re.compile(r"(?<!^)(?<![A-Za-z])[A-Z][a-z]{2,}(?![A-Za-z])", re.MULTILINE)
+
+
+def concrete(text):
+    if not cjk.has_cjk(text):
+        return len(CONCRETE_RE.findall(text))
+    return cjk.concrete_count(text) + len(PROPER_RE.findall(text))
 STOPWORDS = {
     "the", "a", "an", "and", "or", "but", "if", "of", "to", "in", "on", "for",
     "with", "that", "this", "it", "is", "are", "was", "were", "be", "been",
@@ -44,7 +64,7 @@ ABSTRACT_RUN = 3         # beats in a row with nothing checkable in them.
 
 def words(text):
     # "$18,000" is one word when it is spoken, so it is one word here too.
-    return WORD_RE.findall(re.sub(r"(?<=\d),(?=\d)", "", text))
+    return cjk.en_words(text)
 
 
 def pretty(token):
@@ -57,13 +77,13 @@ def tc(seconds):
     return f"{int(m)}:{s:04.1f}"
 
 
-def split_beats(raw, wps):
+def split_beats(raw, wps, cps=cjk.ZH_CPS):
     """One line is one beat, unless a line is too long to be one."""
     beats = []
     for line in [l.strip() for l in raw.splitlines()]:
         if not line:
             continue
-        if len(words(line)) / wps <= MAX_BEAT * 1.5:
+        if cjk.seconds(line, wps, cps) <= MAX_BEAT * 1.5:
             beats.append(line)
             continue
         # Long paragraph: break it at sentence ends so the timings mean
@@ -71,8 +91,9 @@ def split_beats(raw, wps):
         parts = [p.strip() for p in SENT_RE.findall(line) if p.strip()]
         buf = ""
         for part in parts:
-            candidate = (buf + " " + part).strip()
-            if buf and len(words(candidate)) / wps > MAX_BEAT:
+            joiner = "" if cjk.has_cjk(buf[-1:] + part[:1]) else " "
+            candidate = (buf + joiner + part).strip()
+            if buf and cjk.seconds(candidate, wps, cps) > MAX_BEAT:
                 beats.append(buf)
                 buf = part
             else:
@@ -82,28 +103,35 @@ def split_beats(raw, wps):
     return beats
 
 
-def analyse(raw, wpm=165, target=None):
+def analyse(raw, wpm=165, target=None, cpm=cjk.ZH_CPS * 60):
     wps = wpm / 60.0
-    beats = split_beats(raw, wps)
+    cps = cpm / 60.0
+    beats = split_beats(raw, wps, cps)
     if not beats:
         return None
 
     rows, clock = [], 0.0
     for i, text in enumerate(beats):
         n = len(words(text))
-        dur = n / wps
+        dur = cjk.seconds(text, wps, cps)
         rows.append({
             "n": i + 1,
             "start": round(clock, 2),
             "dur": round(dur, 2),
             "words": n,
+            "chars": cjk.cjk_count(text),
             "text": text,
-            "concrete": len(CONCRETE_RE.findall(text)),
+            "concrete": concrete(text),
             "label": "",
             "flags": [],
         })
         clock += dur
     total = clock
+    zh = sum(r["chars"] for r in rows) > sum(r["words"] for r in rows)
+
+    def amount(sec):
+        """Say how much to add or cut in the unit the script is written in."""
+        return f"{int(sec * cps)} 字" if zh else f"{int(sec * wps)} words"
 
     # Label the structural positions a Reel is actually built around.
     for r in rows:
@@ -119,7 +147,7 @@ def analyse(raw, wpm=165, target=None):
     if rows[0]["dur"] > HOOK_WINDOW:
         rows[0]["flags"].append(f"hook runs {rows[0]['dur']:.1f}s, past the {HOOK_WINDOW:.0f}s mark")
         notes.append(f"Beat 1 takes {rows[0]['dur']:.1f}s to say. Cut it to "
-                     f"{int(HOOK_WINDOW * wps)} words or fewer, or the hook lands after "
+                     f"{amount(HOOK_WINDOW)} or fewer, or the hook lands after "
                      "the decision has been made.")
     if rows[0]["concrete"] == 0:
         notes.append("Beat 1 has no number and no name in it. Hooks without something "
@@ -149,6 +177,7 @@ def analyse(raw, wpm=165, target=None):
     first = {w.lower() for w in words(rows[0]["text"]) if w.lower() not in STOPWORDS}
     last = {w.lower() for w in words(rows[-1]["text"]) if w.lower() not in STOPWORDS}
     loop = sorted(pretty(w) for w in first & last)
+    loop += cjk.shared_phrases(rows[0]["text"], rows[-1]["text"])
     if loop:
         notes.append(f"Loops: the last beat repeats \"{', '.join(loop[:3])}\" from the hook. "
                      "Second watches are free reach.")
@@ -161,23 +190,31 @@ def analyse(raw, wpm=165, target=None):
         if abs(delta) <= target * 0.1:
             notes.append(f"Length is on target ({total:.1f}s against {target}s).")
         elif delta > 0:
-            notes.append(f"{delta:.1f}s over target. Cut about {int(delta * wps)} words.")
+            notes.append(f"{delta:.1f}s over target. Cut about {amount(delta)}.")
         else:
-            notes.append(f"{-delta:.1f}s under target. Either add {int(-delta * wps)} words "
+            notes.append(f"{-delta:.1f}s under target. Either add {amount(-delta)} "
                          "or shoot it short. Short is usually right.")
 
     return {
-        "wpm": wpm, "target": target,
+        "wpm": wpm, "cpm": cpm, "target": target,
         "total_seconds": round(total, 2),
         "total_words": sum(r["words"] for r in rows),
+        "total_chars": sum(r["chars"] for r in rows),
         "beats": rows,
         "notes": notes,
     }
 
 
 def render(a, out=sys.stdout):
-    head = (f"BEAT SHEET  ·  {a['total_words']} words  ·  ~{a['total_seconds']:.1f}s "
-            f"at {a['wpm']} wpm" + (f"  ·  target {a['target']}s" if a["target"] else ""))
+    size, rate = [], []
+    if a["total_chars"]:
+        size.append(f"{a['total_chars']} 字")
+        rate.append(f"{a['cpm']:g} 字/min")
+    if a["total_words"] or not a["total_chars"]:
+        size.append(f"{a['total_words']} words")
+        rate.append(f"{a['wpm']:g} wpm")
+    head = (f"BEAT SHEET  ·  {' + '.join(size)}  ·  ~{a['total_seconds']:.1f}s "
+            f"at {' / '.join(rate)}" + (f"  ·  target {a['target']}s" if a["target"] else ""))
     print("\n" + head, file=out)
     print("=" * max(len(head), 72), file=out)
     for r in a["beats"]:
@@ -195,12 +232,14 @@ def main():
     ap = argparse.ArgumentParser(description="Time a Reel script into a beat sheet.")
     ap.add_argument("input", nargs="?", default="-", help="script file, or - for stdin")
     ap.add_argument("--wpm", type=float, default=165, help="speaking rate (default 165)")
+    ap.add_argument("--cpm", type=float, default=cjk.ZH_CPS * 60,
+                    help="Chinese speaking rate in characters per minute (default 270)")
     ap.add_argument("--target", type=float, help="target length in seconds")
     ap.add_argument("--json", action="store_true")
     args = ap.parse_args()
 
     raw = sys.stdin.read() if args.input == "-" else open(args.input, encoding="utf-8").read()
-    a = analyse(raw, wpm=args.wpm, target=args.target)
+    a = analyse(raw, wpm=args.wpm, target=args.target, cpm=args.cpm)
     if not a:
         print("empty script", file=sys.stderr)
         sys.exit(2)
